@@ -1,10 +1,9 @@
 " Vim syntax file
 " Language:	C#
-" Maintainer:	Robert Hicks <bobhicks@adelphia.net>
-" Last change:	2001-10-05
-"
-" Notice: Just keeping it warm until someone takes it over
-" from me.
+" Maintainer:	Heath Stewart <clubstew@hotmail.com>
+" Last change:	2002-07-16
+
+" Notice: folding has been added for #region...#endregion regions
 
 " For version 5.x: Clear all syntax items
 " For version 6.x: Quit when a syntax file was already loaded
@@ -14,8 +13,7 @@ elseif exists("b:current_syntax")
     finish
 endif
 
-
-syn match csharpError "[\\@`]"
+syn match csharpError "[\\`]"
 syn match csharpError "<<<\|\.\.\|=>\|<>\|||=\|&&=\|[^-]->\|\*\/"
 syn keyword csharpConditional 	if else switch case default
 syn keyword csharpRepeat	while for foreach do goto in
@@ -27,7 +25,7 @@ syn keyword csharpDirectional	out ref
 syn keyword csharpType		bool byte char decimal double enum float int long sbyte short sizeof string uint ulong ushort void 
 syn keyword csharpStatement	return  internal typeof lock new operator object
 syn keyword csharpClass		class interface namespace struct override
-syn keyword csharpProperties	get set
+syn keyword csharpProperties	get set add remove
 syn keyword csharpException	try catch throw finally 
 syn keyword csharpScope		public private protected abstract
 syn keyword csharpBranch          break continue nextgroup=csharpUserLabelRef skipwhite
@@ -82,6 +80,23 @@ syn match   csharpCommentStar      contained "^\s*\*[^/]"me=e-1
 syn match   csharpCommentStar      contained "^\s*\*$"
 syn match   csharpLineComment      "//.*" contains=csharpComment2String,csharpCommentCharacter,csharpNumber,csharpTodo,@Spell
 
+" Folding
+function! CSharpFoldText(add)
+	let line = getline(v:foldstart + a:add)
+	let sub = substitute(line, '#region\s', '', 'i')
+	let ts = &tabstop
+	let text = ""
+	while (l:ts > 0)
+		let text = text . v:folddashes[0]
+		let ts = ts - 1
+	endwhile
+	return substitute(sub, "\t", text, "g")
+endfunction
+
+syn region csharpRegionFold start="#region" end="#endregion" transparent fold
+syn sync fromstart
+set foldmethod=syntax foldcolumn=2 foldtext=CSharpFoldText(0)
+
 hi link csharpCommentString csharpString
 hi link csharpComment2String csharpString
 hi link csharpCommentCharacter csharpCharacter
@@ -112,6 +127,7 @@ if !exists("did_csharp_syntax_inits")
     hi link csharpCharacter	string
     hi link csharpComment Comment
     hi link csharpLineComment Comment
+	hi link csharpTodo Todo
     hi link csharpProperties Operator
     hi link csharpTypeConvertDecl Operator
     hi link csharpSystemClass  StorageClass
